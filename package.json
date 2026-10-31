@@ -1,0 +1,23 @@
+{
+  "name": "clawbotku",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Starter echo bot for Discord and Slack.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "start:all": "node src/index.js",
+    "start:discord": "node src/discord.js",
+    "start:slack": "node src/slack.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@slack/bolt": "^5.1.0",
+    "discord.js": "^14.28.0",
+    "dotenv": "^18.0.0"
+  }
+}
