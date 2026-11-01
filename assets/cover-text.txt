@@ -1,0 +1,29 @@
+AI UGC Starter Kit 封面文案建议
+==============================
+
+【主标题（任选）】
+- AI UGC 接单起步包
+- 产品图 → 脚本表 → 批量出片
+- 零基础 AI 带货短视频工作流
+
+【副标题】
+- 离线网页工具 · 双击即用
+- 5 种风格：开箱 / 街访 / 日常 / ASMR / 前后对比
+- 含提示词 + 7 天起步计划
+
+【角标 / 标签】
+- 新手友好
+- 不用露脸
+- 半自动 · 可交付
+- MIT 开源
+
+【GitHub 社交图 (1280×640) 英文】
+AI UGC Starter Kit
+Zero-install UGC ad script generator + prompts + SOP
+Unboxing · Street Interview · Everyday · ASMR · Before/After
+
+【配色建议】
+深色背景 #0F1115 + 橙色强调 #FF7A59 + 浅橙 #FFB38A（与工具界面一致）
+
+【避免使用】
+躺赚 / 订单接不完 / 一条指令全自动赚钱 / 月入过万 / 稳赚

@@ -1,0 +1,12 @@
+{
+  "name": "ai-ugc-starter-kit",
+  "version": "1.0.0",
+  "description": "Zero-install starter kit for AI UGC ad scripts: offline generator, prompts, SOPs. AI UGC 接单起步包。",
+  "license": "MIT",
+  "author": "Zhangliuyang",
+  "private": true,
+  "keywords": ["ugc", "ai-video", "higgsfield", "tiktok-ads", "prompts", "csv", "beginner"],
+  "scripts": {
+    "start": "echo \"No build needed. Open app/index.html in your browser. 直接用浏览器打开 app/index.html 即可。\""
+  }
+}

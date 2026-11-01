@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI UGC Starter Kit · 脚本生成器</title>
+<style>
+  :root{--bg:#0f1115;--card:#181b22;--line:#2a2f3a;--text:#e8eaf0;--muted:#9aa3b2;--accent:#ff7a59;--accent2:#ffb38a;--ok:#4ade80}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+  header h1{margin:0 0 4px;font-size:26px}
+  header p{margin:0;color:var(--muted)}
+  .badge{display:inline-block;font-size:12px;padding:2px 8px;border:1px solid var(--line);border-radius:999px;color:var(--accent2);margin-bottom:8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:18px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0f1218;color:var(--text);font-size:15px}
+  input:focus,select:focus{outline:2px solid var(--accent);border-color:transparent}
+  .styles{display:flex;flex-wrap:wrap;gap:8px}
+  .styles label{display:flex;align-items:center;gap:6px;margin:0;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--text);cursor:pointer;font-size:14px}
+  .styles input{width:auto}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  button{border:0;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer}
+  .primary{background:var(--accent);color:#1a0f0a}
+  .big{font-size:18px;padding:16px 26px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a0f0a}
+  .ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .msg{color:var(--ok);font-size:14px;min-height:20px;margin-top:8px}
+  .tablewrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:1400px}
+  th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+  th{position:sticky;top:0;background:#1f232c;color:var(--accent2);font-weight:600}
+  .disclaimer{font-size:13px;color:var(--muted);border-left:3px solid var(--accent);padding-left:12px}
+  footer{margin-top:28px;font-size:12px;color:var(--muted);text-align:center}
+  @media (max-width:600px){header h1{font-size:21px}.big{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">离线可用 · Offline · 零安装</span>
+    <h1>AI UGC Starter Kit · 脚本生成器</h1>
+    <p>输入产品 → 选风格 → 一键生成 UGC 广告脚本表（CSV / JSON），再拿去 ChatGPT / Higgsfield 等工具出片。</p>
+  </header>
+
+  <div class="card">
+    <div class="grid">
+      <div><label for="product">产品名称 Product name *</label><input id="product" placeholder="例如 Hand Cream / 便携榨汁杯" value="Hand Cream"></div>
+      <div><label for="category">品类 Category</label>
+        <select id="category">
+          <option value="beauty">美妆护肤 Beauty</option>
+          <option value="home">家居 Home</option>
+          <option value="kitchen">厨房 Kitchen</option>
+          <option value="tech">数码 Tech</option>
+          <option value="fitness">运动健身 Fitness</option>
+          <option value="pet">宠物 Pet</option>
+          <option value="fashion">服饰配件 Fashion</option>
+        </select></div>
+      <div><label for="language">脚本语言 Language</label>
+        <select id="language"><option value="en">English</option><option value="zh">中文</option></select></div>
+      <div><label for="count">数量 Count (1-20)</label><input id="count" type="number" min="1" max="20" value="10"></div>
+    </div>
+    <div style="margin-top:14px">
+      <label>风格 Styles（可多选，轮换使用）</label>
+      <div class="styles" id="styles">
+        <label><input type="checkbox" value="unboxing" checked>开箱 Unboxing</label>
+        <label><input type="checkbox" value="street_interview" checked>街访 Street interview</label>
+        <label><input type="checkbox" value="everyday_share" checked>日常分享 Everyday</label>
+        <label><input type="checkbox" value="asmr" checked>ASMR</label>
+        <label><input type="checkbox" value="before_after" checked>前后对比 Before/After</label>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="gen">✨ 生成脚本 Generate</button>
+      <button class="big" id="csv" disabled>⬇ 下载 CSV Download CSV</button>
+      <button class="ghost" id="json" disabled>复制 JSON Copy JSON</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="card">
+    <div class="tablewrap"><table id="tbl"><thead></thead><tbody><tr><td style="color:var(--muted)">点击「生成脚本」查看结果 / Click Generate to preview.</td></tr></tbody></table></div>
+  </div>
+
+  <div class="card disclaimer">
+    <b>声明 Disclaimer：</b>本工具是 UGC 广告脚本<b>模板生成器</b>，用于半自动化整理创意，不是收入保证，也不代表任何接单或变现结果。生成内容需人工审核：核对产品真实卖点，避免夸大功效、医疗/疗效宣称；使用 AI 生成的人物或评价时，请遵守平台与当地广告法规（如标注 AI 生成 / 广告）。<br>
+    This is a template tool for semi-automated UGC ad scripting — not an income guarantee. Always review outputs, keep product claims truthful, and follow platform ad / AI-disclosure rules.
+  </div>
+
+  <footer>AI UGC Starter Kit · MIT License · 纯 HTML/CSS/JS，数据不上传任何服务器 / runs 100% locally</footer>
+</div>
+
+<script>
+/* ============================================================
+ * AI UGC Starter Kit – offline script generator
+ * 离线脚本生成器：用多个钩子/场景素材库 + 产品名组合出变体
+ * No dependencies. No network. 无依赖、无联网。
+ * ============================================================ */
+
+const COLUMNS = ["id","title","hook","style","scene1","scene2","scene3","scene4","voiceover","text_on_screen","cta","language"];
+
+// Category-specific details 品类细节，用来让场景更具体
+const CAT = {
+  beauty:{en:{place:"vanity",use:"apply a little on the back of the hand",benefit:"feels light and sinks in fast",texture:"creamy texture"},
+          zh:{place:"梳妆台",use:"在手背上抹一点",benefit:"很清爽，吸收很快",texture:"细腻质地"}},
+  home:{en:{place:"living room shelf",use:"set it up in under a minute",benefit:"makes the room feel tidier instantly",texture:"clean matte finish"},
+        zh:{place:"客厅置物架",use:"一分钟就装好",benefit:"房间立刻整洁不少",texture:"干净的哑光质感"}},
+  kitchen:{en:{place:"kitchen counter",use:"use it while making breakfast",benefit:"saves me a few minutes every morning",texture:"sturdy, easy-clean surface"},
+           zh:{place:"厨房台面",use:"做早餐时顺手用",benefit:"每天早上省好几分钟",texture:"结实、好清洗的表面"}},
+  tech:{en:{place:"desk setup",use:"pair it and start using it right away",benefit:"just works without fiddling",texture:"smooth, solid build"},
+        zh:{place:"桌面",use:"连上就能用",benefit:"不用折腾，直接好用",texture:"手感顺滑、做工扎实"}},
+  fitness:{en:{place:"home workout corner",use:"take it into a quick 10-minute session",benefit:"makes it easier to stay consistent",texture:"grippy, durable material"},
+           zh:{place:"家里运动角",use:"带进 10 分钟小训练",benefit:"更容易坚持下去",texture:"防滑耐用的材质"}},
+  pet:{en:{place:"pet corner",use:"let my pet try it for the first time",benefit:"my pet actually seems to like it",texture:"soft, pet-safe material"},
+       zh:{place:"宠物角",use:"让毛孩子第一次试",benefit:"毛孩子好像真的很喜欢",texture:"柔软、宠物友好的材质"}},
+  fashion:{en:{place:"mirror by the door",use:"style it into a simple everyday outfit",benefit:"goes with almost everything I own",texture:"nice stitching and fabric"},
+           zh:{place:"门口穿衣镜",use:"搭进日常通勤穿搭",benefit:"跟衣柜里大部分衣服都搭",texture:"做工和面料都不错"}}
+};
+
+// Several hook banks per style 每种风格多组钩子，避免复制粘贴感
+const HOOKS = {
+  en:{
+    unboxing:["Wait till you see what's inside this {p} box.","I almost didn't open this {p}. Glad I did.","Unboxing the {p} everyone keeps asking me about.","POV: your {p} finally arrived.","Let's open this {p} together, no skipping.","First impressions only: the {p}."],
+    street_interview:["Would you pay for this {p}? Let's ask strangers.","I handed strangers a {p}. Their reactions:","Guess the price of this {p}, street edition.","Rating a {p} with people on the street.","Blind test: what do people think of this {p}?"],
+    everyday_share:["Things I actually use daily: the {p}.","A normal day with my {p}.","The {p} that quietly fixed my routine.","Small thing, big difference: my {p}.","Real talk about my {p} after two weeks."],
+    asmr:["Turn your sound up for this {p}.","No talking. Just the {p}.","The most satisfying {p} sounds you'll hear today.","Headphones on: {p} ASMR.","Quiet unboxing: {p} edition."],
+    before_after:["Before and after using the {p}. Watch closely.","Day 1 vs day 14 with the {p}.","Same setup, one change: the {p}.","I tested the {p} for a week. Here's the difference.","Swipe-worthy before/after: {p}."]
+  },
+  zh:{
+    unboxing:["这个{p}的盒子里到底有什么？","差点没拆这个{p}，还好拆了。","大家一直问的{p}，今天拆给你们看。","终于到了！拆{p}不跳过版。","{p}的第一印象，只说真话。"],
+    street_interview:["这个{p}你愿意花多少钱？去街上问问。","把{p}递给路人，他们的反应是……","街头猜价：这个{p}多少钱？","让路人给{p}打个分。","盲测：大家怎么看这个{p}？"],
+    everyday_share:["我每天真的在用的东西：{p}。","和{p}一起的普通一天。","悄悄改善我日常的{p}。","小东西大不同：我的{p}。","用了两周{p}，说点真实感受。"],
+    asmr:["把声音打开，听听这个{p}。","不说话，只有{p}。","今天最解压的{p}声音。","戴上耳机：{p} ASMR。","安静开箱：{p}篇。"],
+    before_after:["用{p}之前 vs 之后，仔细看。","第1天 vs 第14天：{p}。","同样的场景，只换了一个{p}。","我测了{p}一周，区别在这。","值得截图的对比：{p}。"]
+  }
+};
+
+// Scene banks: [scene1 options], [scene2], [scene3], [scene4]
+const SCENES = {
+  en:{
+    unboxing:[["Close-up of hands slicing tape on a pastel box, soft daylight","Package dropped on a doormat, creator picks it up excitedly","Top-down shot of a box on a linen bedsheet, morning light"],
+              ["Lifting out the {p}, slow 360 turn, logo in focus","Peeling protective film off the {p}, crisp detail","Laying out everything in the box: {p} plus inserts"],
+              ["Macro shot of the {tx}","Creator's genuine reaction face while holding the {p}","Hands {use}, natural light"],
+              ["{p} placed on the {place}, vertical 9:16 hero shot","Slow push-in on the {p} with plants in background","Creator holds the {p} beside face, smiles at camera"]],
+    street_interview:[["Handheld shot on a busy city sidewalk, creator holds mic and the {p}","Golden-hour street corner, creator approaches a friendly passerby","Outdoor market vibe, creator shows the {p} to camera"],
+              ["Passerby tries the {p}, surprised smile","Person turns the {p} over, reads the label","Two friends compare opinions on the {p}"],
+              ["Quick cuts of three people giving a thumbs up","Passerby writes a price guess on a small card","Close-up of someone saying 'I'd buy that'"],
+              ["Creator holds the {p} to camera, street bokeh behind","Price reveal card over a street background","Creator walks away waving, {p} in hand"]],
+    everyday_share:[["Morning bedroom light, creator grabs the {p} from the nightstand","Alarm goes off, creator reaches for the {p}","Coffee pouring, the {p} sits nearby"],
+              ["Creator uses the {p} while coffee brews","Creator tries to {use} before leaving","Mirror shot, the {p} part of the routine"],
+              ["Tossing the {p} into a tote bag, out the door","Commute shot, creator glances at the {p}","Lunch break, creator uses the {p} again"],
+              ["Desk shot, the {p} beside a laptop, warm afternoon light","Evening wind-down, the {p} back on the {place}","Creator gives a quick nod to camera"]],
+    asmr:[["Extreme macro of the {p} packaging being opened","Fingernail taps on the {p}, crisp sound","Slow pull of a ribbon or seal on the {p} box"],
+              ["Slow motion detail of the {tx}","Gentle handling of the {p}, every sound amplified","Close-up of hands {use}"],
+              ["Rhythmic tapping and handling, crisp sound focus","Overhead shot, slow deliberate movements","Soft-focus detail shot, natural ambient sound"],
+              ["Final still life of the {p} on marble, soft shadow","{p} placed gently, silence for one beat","Fade out on the {p} in moody light"]],
+    before_after:[["'Before' label: messy or tired-looking scene without the {p}","Split screen, left side labeled BEFORE","Creator sighs at the old way of doing it"],
+              ["Creator introduces the {p}, quick demo","Hands {use}","Time-lapse of using the {p}"],
+              ["'After' label: same angle, visibly better result","Split screen reveals AFTER on the right","Creator's satisfied reaction to the result"],
+              ["{p} hero shot with 'Before → After' text","Side-by-side final comparison, freeze frame","Creator points at the {p}, small smile"]]
+  },
+  zh:{
+    unboxing:[["双手划开马卡龙色快递盒，柔和自然光","快递放在门口，创作者开心拿起","俯拍亚麻床单上的盒子，早晨光线"],
+              ["取出{p}，慢速360°转动，logo清晰","撕掉{p}的保护膜，细节特写","把盒内东西一字摆开：{p}和附件"],
+              ["微距展示{tx}","拿着{p}的真实表情","双手{use}，自然光"],
+              ["{p}放在{place}，9:16竖屏主图","缓慢推近{p}，背景有绿植","把{p}举到脸旁，对镜头微笑"]],
+    street_interview:[["繁华街头手持拍摄，创作者拿着话筒和{p}","黄昏街角，创作者走向一位友好的路人","市集氛围，创作者向镜头展示{p}"],
+              ["路人试用{p}，露出惊喜笑容","路人翻看{p}的标签","两个朋友讨论{p}"],
+              ["三个路人竖大拇指快剪","路人在小卡片上写下猜价","特写：有人说“我会买”"],
+              ["把{p}举向镜头，背景街景虚化","街景上叠加价格揭晓卡","创作者拿着{p}挥手离开"]],
+    everyday_share:[["清晨卧室，从床头拿起{p}","闹钟响起，伸手拿{p}","倒咖啡，{p}就在旁边"],
+              ["等咖啡时使用{p}","出门前{use}","镜子前，{p}成为日常一部分"],
+              ["把{p}丢进托特包出门","通勤路上看一眼{p}","午休时又用了一次{p}"],
+              ["桌面镜头，{p}在电脑旁，午后暖光","晚上放松，{p}放回{place}","对镜头轻轻点头"]],
+    asmr:[["极近特写打开{p}包装","指甲轻敲{p}，清脆声音","慢慢拉开{p}盒子的封条"],
+              ["慢动作展示{tx}","轻柔把玩{p}，放大每个声音","双手{use}特写"],
+              ["有节奏的轻敲，突出声音","俯拍，缓慢动作","柔焦细节，自然环境音"],
+              ["{p}静物放在大理石上，柔和阴影","轻放{p}，静默一拍","昏暗氛围光中淡出{p}"]],
+    before_after:[["标注“之前”：没有{p}时的杂乱场景","分屏，左边标注 BEFORE","对旧方法叹气"],
+              ["介绍{p}，快速演示","双手{use}","使用{p}的延时摄影"],
+              ["标注“之后”：同机位，效果明显更好","分屏右侧揭晓 AFTER","对结果满意的反应"],
+              ["{p}主图，叠字“之前 → 之后”","左右对比定格","指向{p}，微笑"]]
+  }
+};
+
+const VO = {
+  en:{
+    unboxing:["Okay, it finally came. The {p} feels well made, and honestly it {benefit}. Keeping this one on my {place}.","First impression of the {p}: nice packaging, {tx}, and it {benefit}. Not bad at all.","No sponsor energy here, just opening the {p}. I like that it {benefit}."],
+    street_interview:["I asked people to try the {p} with zero context. Most of them said it {benefit}. A few guessed it cost more than it does.","Random people, honest opinions. The {p} got mostly good reactions, and people liked that it {benefit}.","Street test complete. The {p} surprised a few people, especially because it {benefit}."],
+    everyday_share:["The {p} is just part of my day now. I {use}, and it {benefit}. Simple, and it works for me.","Two weeks with the {p}. I didn't expect much, but it {benefit}.","Not a big routine, just one small upgrade: the {p}. It {benefit}."],
+    asmr:["Just listen. The {p}. {tx}. That's it.","Quiet moment with the {p}. Nothing else.","Soft sounds, slow hands, and the {p}."],
+    before_after:["Before, my routine felt a bit messy. After adding the {p}, it {benefit}. Results can vary, but this is what I noticed.","Same angle, one change. The {p} {benefit}. Here's my honest comparison.","I tested the {p} for a week. Biggest difference? It {benefit}."]
+  },
+  zh:{
+    unboxing:["终于到了。{p}做工不错，而且{benefit}。准备放在{place}上。","{p}的第一印象：包装用心，{tx}，而且{benefit}。","不是硬广，就是拆个{p}。我喜欢它{benefit}。"],
+    street_interview:["我让路人在不知情的情况下试了{p}，大多数人说{benefit}，还有人猜的价格比实际高。","随机路人，真实评价。{p}反馈不错，大家觉得{benefit}。","街头测试完成，{p}让几个人有点意外，主要是{benefit}。"],
+    everyday_share:["{p}已经是我日常的一部分。我会{use}，{benefit}。简单好用。","用了两周{p}，本来没抱太大期待，但{benefit}。","不是什么大改变，就是一个小升级：{p}，{benefit}。"],
+    asmr:["听就好。{p}，{tx}。就这样。","和{p}的安静时刻。","轻柔的声音，缓慢的动作，还有{p}。"],
+    before_after:["之前我的日常有点乱，加了{p}之后，{benefit}。因人而异，这是我的真实感受。","同样机位，只换了一样东西：{p}，{benefit}。","测了{p}一周，最大的区别是：{benefit}。"]
+  }
+};
+
+const ANGLE = {en:["Honest Review","First Look","Real Talk","Worth It?","Quick Test","My Take"],zh:["真实测评","第一印象","说点实话","值不值？","快速测试","我的看法"]};
+const STYLE_NAME = {en:{unboxing:"Unboxing",street_interview:"Street Interview",everyday_share:"Everyday Share",asmr:"ASMR",before_after:"Before & After"},
+                    zh:{unboxing:"开箱",street_interview:"街访",everyday_share:"日常分享",asmr:"ASMR",before_after:"前后对比"}};
+// Soft CTAs only 只用温和的行动引导
+const CTA = {en:["Follow for more honest finds.","Save this for your next order.","Link in bio if you're curious.","Would you try it? Tell me below.","More product tests coming soon."],
+             zh:["关注我，看更多真实测评。","先收藏，下次购物参考。","感兴趣可以看主页链接。","你会想试试吗？评论区聊聊。","更多好物测试，后续更新。"]};
+
+// Voiceover closers, rotated so repeated styles sound different 口播结尾句轮换
+const CLOSER = {en:["Just my honest take.","That's my experience so far.","Curious what you'd think.","Anyway, that's it for today."],
+                zh:["只是我的真实感受。","目前用下来就是这样。","好奇你们怎么看。","今天就分享到这。"]};
+
+const LEAD = {en:["","Round two: ","Quick update: ","Okay, one more: "],zh:["","第二弹：","更新一下：","再来一个："]};
+
+// Small seeded-ish shuffle so each run varies 每次生成都有变化
+function pick(arr, i, salt){ return arr[(i * 7 + salt) % arr.length]; }
+// Rotate scene options; shift per "lap" so repeated styles get new combos 每轮错位，组合不重复
+// mixed-radix: scene k changes every len^(k-1) rounds → up to 81 unique 4-scene combos
+function pickScene(arr, round, salt, k){ return arr[(Math.floor(round / Math.pow(arr.length, k - 1)) + salt + k) % arr.length]; }
+function fill(t, v){ return t.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? ""); }
+
+let rows = [];
+
+function generate(){
+  const p = document.getElementById("product").value.trim();
+  if(!p){ toast("请先填写产品名称 / Please enter a product name", true); return; }
+  const lang = document.getElementById("language").value;
+  const cat = CAT[document.getElementById("category").value][lang];
+  let n = parseInt(document.getElementById("count").value, 10) || 1;
+  n = Math.max(1, Math.min(20, n));
+  document.getElementById("count").value = n;
+  const styles = [...document.querySelectorAll("#styles input:checked")].map(x => x.value);
+  if(!styles.length){ toast("至少选择一种风格 / Pick at least one style", true); return; }
+
+  const v = {p, place:cat.place, use:cat.use, benefit:cat.benefit, tx:cat.texture};
+  const salt = Math.floor(Math.random() * 1000);
+  const used = new Set();
+  rows = [];
+  for(let i = 0; i < n; i++){
+    const style = styles[i % styles.length];
+    const round = Math.floor(i / styles.length);   // how many times this style repeated
+    const s = SCENES[lang][style];
+    // pick different hook each round of the same style 同风格每轮换钩子
+    const hooks = HOOKS[lang][style];
+    const lap = Math.floor(round / hooks.length);    // bank exhausted → add a lead-in 钩子用完后加前缀
+    let hook = LEAD[lang][lap % LEAD[lang].length] + fill(hooks[(round + salt) % hooks.length], v);
+    if(used.has(hook)) hook = fill(hooks[(round + salt + 1) % hooks.length], v) + (lang === "en" ? " (part " + (lap + 2) + ")" : `（第${lap + 2}弹）`);
+    used.add(hook);
+    const angle = pick(ANGLE[lang], i, salt);
+    const title = lang === "en"
+      ? `${p} ${STYLE_NAME.en[style]} – ${angle} #${i+1}`
+      : `${p}${STYLE_NAME.zh[style]}｜${angle} #${i+1}`;
+    rows.push({
+      id: i + 1,
+      title,
+      hook,
+      style,
+      scene1: fill(pickScene(s[0], round, salt, 1), v),
+      scene2: fill(pickScene(s[1], round, salt, 2), v),
+      scene3: fill(pickScene(s[2], round, salt, 3), v),
+      scene4: fill(pickScene(s[3], round, salt, 4), v),
+      voiceover: fill(VO[lang][style][(round + salt) % VO[lang][style].length], v) + (lang === "en" ? " " : "") + CLOSER[lang][(Math.floor(round / VO[lang][style].length) + salt) % CLOSER[lang].length],
+      text_on_screen: `${p.toUpperCase()} | ${angle}`,
+      cta: pick(CTA[lang], i, salt),
+      language: lang
+    });
+  }
+  render();
+  document.getElementById("csv").disabled = false;
+  document.getElementById("json").disabled = false;
+  toast(`已生成 ${rows.length} 条脚本 / Generated ${rows.length} scripts`);
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function render(){
+  const t = document.getElementById("tbl");
+  t.querySelector("thead").innerHTML = "<tr>" + COLUMNS.map(c => `<th>${c}</th>`).join("") + "</tr>";
+  t.querySelector("tbody").innerHTML = rows.map(r => "<tr>" + COLUMNS.map(c => `<td>${esc(r[c])}</td>`).join("") + "</tr>").join("");
+}
+
+function toCSV(){
+  const q = s => { s = String(s); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
+  return [COLUMNS.join(","), ...rows.map(r => COLUMNS.map(c => q(r[c])).join(","))].join("\r\n");
+}
+
+function downloadCSV(){
+  // BOM so Excel opens Chinese correctly 加 BOM，Excel 打开中文不乱码
+  const blob = new Blob(["\uFEFF" + toCSV()], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  const name = document.getElementById("product").value.trim().replace(/[^\w\u4e00-\u9fa5-]+/g, "_") || "product";
+  a.href = URL.createObjectURL(blob);
+  a.download = `ugc-scripts-${name}-${rows.length}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast("CSV 已下载 / CSV downloaded");
+}
+
+function copyJSON(){
+  const text = JSON.stringify(rows, null, 2);
+  const done = () => toast("JSON 已复制 / JSON copied");
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+  ta.select(); try{ document.execCommand("copy"); done(); }catch(e){ toast("复制失败，请手动复制 / Copy failed", true); } ta.remove();
+}
+
+function toast(m, err){ const el = document.getElementById("msg"); el.textContent = m; el.style.color = err ? "#f87171" : "var(--ok)"; }
+
+document.getElementById("gen").onclick = generate;
+document.getElementById("csv").onclick = downloadCSV;
+document.getElementById("json").onclick = copyJSON;
+</script>
+</body>
+</html>
